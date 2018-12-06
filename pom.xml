@@ -47,6 +47,23 @@
     </ciManagement>
 
     <distributionManagement>
+        <downloadUrl>
+            http://nexus.touchtec.com.br/content/repositories/releases
+        </downloadUrl>
+        <repository>
+            <id>touch-releases</id>
+            <name>Touch Releases</name>
+            <url>http://nexus.touchtec.com.br/content/repositories/releases
+            </url>
+        </repository>
+        <snapshotRepository>
+            <id>touch-snapshots</id>
+            <name>Touch Snapshots</name>
+            <url>http://nexus.touchtec.com.br/content/repositories/snapshots
+            </url>
+            <uniqueVersion>false</uniqueVersion>
+        </snapshotRepository>
+        <!--
         <repository>
             <id>spring-milestone</id>
             <name>Spring Milestone Repository</name>
@@ -64,6 +81,7 @@
             <name>Local Site Directory</name>
             <url>file:///${user.dir}/site</url>
         </site>
+        -->
     </distributionManagement>
 
     <repositories>

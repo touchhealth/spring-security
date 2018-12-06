@@ -91,8 +91,8 @@ public class AuthenticationManagerBeanDefinitionParser implements BeanDefinition
 
         providerManagerBldr.addPropertyValue("providers", providers);
 
-        if ("false".equals(element.getAttribute(ATT_ERASE_CREDENTIALS))) {
-            providerManagerBldr.addPropertyValue("eraseCredentialsAfterAuthentication", false);
+        if ("true".equals(element.getAttribute(ATT_ERASE_CREDENTIALS))) {
+            providerManagerBldr.addPropertyValue("eraseCredentialsAfterAuthentication", true);
         }
 
         // Add the default event publisher
