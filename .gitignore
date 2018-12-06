@@ -14,3 +14,4 @@ intellij/
 .gradle/
 gradle.properties
 atlassian-ide-plugin.xml
+.idea

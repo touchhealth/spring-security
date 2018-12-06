@@ -38,8 +38,14 @@ public class AuthenticationManagerBeanDefinitionParser implements BeanDefinition
     private static final String ATT_ERASE_CREDENTIALS = "erase-credentials";
 
     public BeanDefinition parse(Element element, ParserContext pc) {
-        Assert.state(!pc.getRegistry().containsBeanDefinition(BeanIds.AUTHENTICATION_MANAGER),
-                "AuthenticationManager has already been registered!");
+        String id = element.getAttribute("id");
+
+        if (!StringUtils.hasText(id)) {
+            if (pc.getRegistry().containsBeanDefinition(BeanIds.AUTHENTICATION_MANAGER)) {
+                pc.getReaderContext().warning("Overriding globally registered AuthenticationManager", pc.extractSource(element));
+            }
+            id = BeanIds.AUTHENTICATION_MANAGER;
+        }
         pc.pushContainingComponent(new CompositeComponentDefinition(element.getTagName(), pc.extractSource(element)));
 
         BeanDefinitionBuilder providerManagerBldr = BeanDefinitionBuilder.rootBeanDefinition(ProviderManager.class);
@@ -57,13 +63,24 @@ public class AuthenticationManagerBeanDefinitionParser implements BeanDefinition
             if (node instanceof Element) {
                 Element providerElt = (Element)node;
                 if (StringUtils.hasText(providerElt.getAttribute(ATT_REF))) {
+                    if (providerElt.getAttributes().getLength() > 1) {
+                        pc.getReaderContext().error("authentication-provider element cannot be used with other attributes " +
+                                "when using 'ref' attribute", pc.extractSource(element));
+                    }
+                    NodeList providerChildren = providerElt.getChildNodes();
+                    for (int j = 0; j < providerChildren.getLength(); j++) {
+                        if (providerChildren.item(j) instanceof Element) {
+                            pc.getReaderContext().error("authentication-provider element cannot have child elements when used " +
+                                    "with 'ref' attribute", pc.extractSource(element));
+                        }
+                    }
                     providers.add(new RuntimeBeanReference(providerElt.getAttribute(ATT_REF)));
                 } else {
                     BeanDefinition provider = resolver.resolve(providerElt.getNamespaceURI()).parse(providerElt, pc);
                     Assert.notNull(provider, "Parser for " + providerElt.getNodeName() + " returned a null bean definition");
-                    String id = pc.getReaderContext().generateBeanName(provider);
-                    pc.registerBeanComponent(new BeanComponentDefinition(provider, id));
-                    providers.add(new RuntimeBeanReference(id));
+                    String providerId = pc.getReaderContext().generateBeanName(provider);
+                    pc.registerBeanComponent(new BeanComponentDefinition(provider, providerId));
+                    providers.add(new RuntimeBeanReference(providerId));
                 }
             }
         }
@@ -74,22 +91,27 @@ public class AuthenticationManagerBeanDefinitionParser implements BeanDefinition
 
         providerManagerBldr.addPropertyValue("providers", providers);
 
-        if ("true".equals(element.getAttribute(ATT_ERASE_CREDENTIALS))) {
-            providerManagerBldr.addPropertyValue("eraseCredentialsAfterAuthentication", true);
+        if ("false".equals(element.getAttribute(ATT_ERASE_CREDENTIALS))) {
+            providerManagerBldr.addPropertyValue("eraseCredentialsAfterAuthentication", false);
         }
 
         // Add the default event publisher
         BeanDefinition publisher = new RootBeanDefinition(DefaultAuthenticationEventPublisher.class);
-        String id = pc.getReaderContext().generateBeanName(publisher);
-        pc.registerBeanComponent(new BeanComponentDefinition(publisher, id));
-        providerManagerBldr.addPropertyReference("authenticationEventPublisher", id);
+        String pubId = pc.getReaderContext().generateBeanName(publisher);
+        pc.registerBeanComponent(new BeanComponentDefinition(publisher, pubId));
+        providerManagerBldr.addPropertyReference("authenticationEventPublisher", pubId);
 
-        pc.registerBeanComponent(
-                new BeanComponentDefinition(providerManagerBldr.getBeanDefinition(), BeanIds.AUTHENTICATION_MANAGER));
+        // Para que o autowire continue funcionando com o bean sem id setado como principal
+        BeanDefinition beanDef = providerManagerBldr.getBeanDefinition();
+        if (id.equals(BeanIds.AUTHENTICATION_MANAGER)) {
+            beanDef.setPrimary(true);
+        }
+
+        pc.registerBeanComponent(new BeanComponentDefinition(providerManagerBldr.getBeanDefinition(), id));
 
         if (StringUtils.hasText(alias)) {
-            pc.getRegistry().registerAlias(BeanIds.AUTHENTICATION_MANAGER, alias);
-            pc.getReaderContext().fireAliasRegistered(BeanIds.AUTHENTICATION_MANAGER, alias, pc.extractSource(element));
+            pc.getRegistry().registerAlias(id, alias);
+            pc.getReaderContext().fireAliasRegistered(id, alias, pc.extractSource(element));
         }
 
         pc.popAndRegisterContainingComponent();

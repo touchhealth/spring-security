@@ -1,4 +1,4 @@
-http\://www.springframework.org/schema/security/spring-security.xsd=org/springframework/security/config/spring-security-3.0.4.xsd
+http\://www.springframework.org/schema/security/spring-security.xsd=org/springframework/security/config/spring-security-3.0.7.1.touch.xsd
 http\://www.springframework.org/schema/security/spring-security-3.0.xsd=org/springframework/security/config/spring-security-3.0.xsd
 http\://www.springframework.org/schema/security/spring-security-3.0.4.xsd=org/springframework/security/config/spring-security-3.0.4.xsd
 http\://www.springframework.org/schema/security/spring-security-3.0.3.xsd=org/springframework/security/config/spring-security-3.0.3.xsd
