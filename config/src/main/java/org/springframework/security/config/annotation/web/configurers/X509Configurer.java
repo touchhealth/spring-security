@@ -73,6 +73,7 @@ import org.springframework.security.web.authentication.preauth.x509.X509Principa
  * </ul>
  *
  * @author Rob Winch
+ * @author Max Batischev
  * @since 3.2
  */
 public final class X509Configurer<H extends HttpSecurityBuilder<H>>
@@ -160,7 +161,10 @@ public final class X509Configurer<H extends HttpSecurityBuilder<H>>
 	 * @param subjectPrincipalRegex the regex to extract the user principal from the
 	 * certificate (i.e. "CN=(.*?)(?:,|$)").
 	 * @return the {@link X509Configurer} for further customizations
+	 * @deprecated Please use {@link #x509PrincipalExtractor(X509PrincipalExtractor)}
+	 * instead
 	 */
+	@Deprecated
 	public X509Configurer<H> subjectPrincipalRegex(String subjectPrincipalRegex) {
 		SubjectDnX509PrincipalExtractor principalExtractor = new SubjectDnX509PrincipalExtractor();
 		principalExtractor.setSubjectDnRegex(subjectPrincipalRegex);
