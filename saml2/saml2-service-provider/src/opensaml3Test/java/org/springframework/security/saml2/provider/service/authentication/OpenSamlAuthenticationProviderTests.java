@@ -351,7 +351,7 @@ public class OpenSamlAuthenticationProviderTests {
 		response.getEncryptedAssertions().add(encryptedAssertion);
 		TestOpenSamlObjects.signed(response, TestSaml2X509Credentials.assertingPartySigningCredential(),
 				RELYING_PARTY_ENTITY_ID);
-		Saml2AuthenticationToken token = token(response, registration()
+		Saml2AuthenticationToken token = token(response, verifying(registration())
 			.decryptionX509Credentials((c) -> c.add(TestSaml2X509Credentials.assertingPartyPrivateCredential())));
 		assertThatExceptionOfType(Saml2AuthenticationException.class)
 			.isThrownBy(() -> this.provider.authenticate(token))

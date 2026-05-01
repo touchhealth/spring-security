@@ -478,20 +478,32 @@ public final class OpenSamlAuthenticationProvider implements AuthenticationProvi
 		boolean responseSigned = response.isSigned();
 
 		ResponseToken responseToken = new ResponseToken(response, token);
-		Saml2ResponseValidatorResult result = this.responseSignatureValidator.convert(responseToken);
+		Collection<Saml2Error> responseSignatureErrors = this.responseSignatureValidator.convert(responseToken)
+			.getErrors();
+		if (!responseSignatureErrors.isEmpty()) {
+			reportErrors(response, responseSignatureErrors);
+			return;
+		}
+
+		Collection<Saml2Error> errors = new ArrayList<>();
 		if (responseSigned) {
 			this.responseElementsDecrypter.accept(responseToken);
 		}
-		result = result.concat(this.responseValidator.convert(responseToken));
+		errors.addAll(this.responseValidator.convert(responseToken).getErrors());
 		boolean allAssertionsSigned = true;
 		for (Assertion assertion : response.getAssertions()) {
 			AssertionToken assertionToken = new AssertionToken(assertion, token);
-			result = result.concat(this.assertionSignatureValidator.convert(assertionToken));
+			Collection<Saml2Error> assertionSignatureErrors = this.assertionSignatureValidator.convert(assertionToken)
+				.getErrors();
+			errors.addAll(assertionSignatureErrors);
 			allAssertionsSigned = allAssertionsSigned && assertion.isSigned();
+			if (!assertionSignatureErrors.isEmpty()) {
+				continue;
+			}
 			if (responseSigned || assertion.isSigned()) {
 				this.assertionElementsDecrypter.accept(new AssertionToken(assertion, token));
 			}
-			result = result.concat(this.assertionValidator.convert(assertionToken));
+			errors.addAll(this.assertionValidator.convert(assertionToken).getErrors());
 		}
 		if (!responseSigned && !allAssertionsSigned) {
 			String description = "Either the response or one of the assertions is unsigned. "
@@ -500,29 +512,29 @@ public final class OpenSamlAuthenticationProvider implements AuthenticationProvi
 		}
 		Assertion firstAssertion = CollectionUtils.firstElement(response.getAssertions());
 		if (!hasName(firstAssertion)) {
-			Saml2Error error = new Saml2Error(Saml2ErrorCodes.SUBJECT_NOT_FOUND,
-					"Assertion [" + firstAssertion.getID() + "] is missing a subject");
-			result = result.concat(error);
+			errors.add(new Saml2Error(Saml2ErrorCodes.SUBJECT_NOT_FOUND,
+					"Assertion [" + firstAssertion.getID() + "] is missing a subject"));
 		}
 
-		if (result.hasErrors()) {
-			Collection<Saml2Error> errors = result.getErrors();
-			if (logger.isTraceEnabled()) {
-				logger.debug("Found " + errors.size() + " validation errors in SAML response [" + response.getID()
-						+ "]: " + errors);
-			}
-			else if (logger.isDebugEnabled()) {
-				logger
-					.debug("Found " + errors.size() + " validation errors in SAML response [" + response.getID() + "]");
-			}
-			Saml2Error first = errors.iterator().next();
-			throw createAuthenticationException(first.getErrorCode(), first.getDescription(), null);
-		}
-		else {
+		reportErrors(response, errors);
+	}
+
+	private void reportErrors(Response response, Collection<Saml2Error> errors) {
+		if (errors.isEmpty()) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Successfully processed SAML Response [" + response.getID() + "]");
 			}
+			return;
 		}
+		if (logger.isTraceEnabled()) {
+			logger.debug("Found " + errors.size() + " validation errors in SAML response [" + response.getID() + "]: "
+					+ errors);
+		}
+		else if (logger.isDebugEnabled()) {
+			logger.debug("Found " + errors.size() + " validation errors in SAML response [" + response.getID() + "]");
+		}
+		Saml2Error first = errors.iterator().next();
+		throw createAuthenticationException(first.getErrorCode(), first.getDescription(), null);
 	}
 
 	private Converter<ResponseToken, Saml2ResponseValidatorResult> createDefaultResponseSignatureValidator() {
