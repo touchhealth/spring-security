@@ -22,7 +22,6 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.PluginManager
 import org.springframework.gradle.classpath.CheckProhibitedDependenciesLifecyclePlugin
-import org.springframework.gradle.maven.SpringNexusPublishPlugin
 
 class RootProjectPlugin implements Plugin<Project> {
 
@@ -30,33 +29,10 @@ class RootProjectPlugin implements Plugin<Project> {
 	void apply(Project project) {
 		PluginManager pluginManager = project.getPluginManager()
 		pluginManager.apply(BasePlugin)
-		pluginManager.apply(SchemaPlugin)
 		pluginManager.apply(NoHttpPlugin)
-		pluginManager.apply(SpringNexusPublishPlugin)
 		pluginManager.apply(CheckProhibitedDependenciesLifecyclePlugin)
-		pluginManager.apply(ArtifactoryPlugin)
-		pluginManager.apply("org.sonarqube")
 
 		project.repositories.mavenCentral()
-
-		String projectName = Utils.getProjectName(project)
-		project.sonarqube {
-			properties {
-				property "sonar.java.coveragePlugin", "jacoco"
-				property "sonar.projectName", projectName
-				property "sonar.jacoco.reportPath", "${project.buildDir.name}/jacoco.exec"
-				property "sonar.links.homepage", "https://spring.io/${projectName}"
-				property "sonar.links.ci", "https://jenkins.spring.io/job/${projectName}/"
-				property "sonar.links.issue", "https://github.com/spring-projects/${projectName}/issues"
-				property "sonar.links.scm", "https://github.com/spring-projects/${projectName}"
-				property "sonar.links.scm_dev", "https://github.com/spring-projects/${projectName}.git"
-			}
-		}
-
-		def finalizeDeployArtifacts = project.task("finalizeDeployArtifacts")
-		if (Utils.isRelease(project) && project.hasProperty("ossrhUsername")) {
-			finalizeDeployArtifacts.dependsOn project.tasks.closeAndReleaseOssrhStagingRepository
-		}
 	}
 
 }

@@ -75,7 +75,6 @@ public class MavenPublishingConventionsPlugin implements Plugin<Project> {
 	private void customizeJavaPlugin(Project project) {
 		project.getPlugins().withType(JavaPlugin.class).all((javaPlugin) -> {
 			JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
-			extension.withJavadocJar();
 			extension.withSourcesJar();
 		});
 	}
