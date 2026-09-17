@@ -22,6 +22,7 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.PluginManager
 import org.springframework.gradle.classpath.CheckProhibitedDependenciesLifecyclePlugin
+import org.springframework.gradle.maven.MavenRepositorySettingsPlugin
 
 class RootProjectPlugin implements Plugin<Project> {
 
@@ -31,6 +32,7 @@ class RootProjectPlugin implements Plugin<Project> {
 		pluginManager.apply(BasePlugin)
 		pluginManager.apply(NoHttpPlugin)
 		pluginManager.apply(CheckProhibitedDependenciesLifecyclePlugin)
+		pluginManager.apply(MavenRepositorySettingsPlugin)
 
 		project.repositories.mavenCentral()
 	}

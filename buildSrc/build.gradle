@@ -102,6 +102,7 @@ dependencies {
 	implementation libs.org.jfrog.buildinfo.build.info.extractor.gradle
 	implementation libs.org.sonarsource.scanner.gradle.sonarqube.gradle.plugin
 	implementation libs.com.squareup.okhttp3.okhttp
+	implementation libs.org.apache.maven.maven.settings.builder
 
 	testImplementation platform(libs.org.junit.junit.bom)
 	testImplementation platform(libs.org.mockito.mockito.bom)

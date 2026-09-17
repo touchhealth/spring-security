@@ -14,5 +14,6 @@ public class SpringMavenPlugin implements Plugin<Project> {
 		pluginManager.apply(MavenPublishingConventionsPlugin.class);
 		pluginManager.apply(PublishAllJavaComponentsPlugin.class);
 		pluginManager.apply(PublishLocalPlugin.class);
+		pluginManager.apply(PublishRemotePlugin.class);
 	}
 }
